@@ -1,0 +1,83 @@
+{# Begin Management Configuration #}
+hostname {{ hostname }}
+!
+vrf definition MGMT
+!
+interface Management1
+ vrf forwarding MGMT
+ ip address {{ mgmtIp }}{{ mgmtInfo['mask'] }}
+ no shutdown
+!
+ip route vrf MGMT 0.0.0.0/0 {{ mgmtInfo['gateway'] }}
+!
+{% if usernames != None %}
+{% for username in mgmtInfo['usernames'] %}
+username {{ username['userId'] }} secret sha512 {{ username['secret'] }}
+{% endfor %}
+{% endif %}
+!
+management api http-commands
+ no shutdown
+ !
+ vrf MGMT
+  no shutdown
+!
+{# Begin MLAG Configuration #}
+spanning-tree mode rapid-pvst
+!
+vlan 4094
+ name MLAGPEER
+ trunk group MLAGPEER
+!
+no spanning-tree vlan 4094
+!
+interface vlan4094
+ ip address 192.168.255.{{ mlagOctet }}/31
+ description MLAG PEER VLAN
+ no autostate
+ no shutdown
+!
+interface Port-Channel1000
+ description MLAG PEER LINK
+ switchport mode trunk
+ switchport trunk group MLAGPEER
+!
+interface {{ leafs['mlag']['peerLink1'] }}
+ description MLAG PEER LINK 1
+ channel-group 1000 mode active
+!
+interface {{ leafs['mlag']['peerLink2'] }}
+ description MLAG PEER LINK 2
+ channel-group 1000 mode active
+!
+mlag configuration
+ domain-id {{ mlagDomain }}
+{%if mlagOctet == '254' %}
+ peer-address 192.168.255.255
+{%elif mlagOctet == '255' %}
+ peer-address 192.168.255.254
+{% endif %}
+ peer-link Port-Channel1000
+ local-interface vlan 4094
+!
+{# Begin L2 Vlan Configuration #}
+{% for vlan in vlans %}
+vlan {{ vlan['vlanId'] }}
+ name {{ vlan['name'] }}
+{% endfor %}
+!
+{# Begin Port Channel Configuration #}
+interface Port-Channel100
+ description MLAG Uplink To Spines
+ switchport mode trunk
+ mlag 100
+!
+{# Begin Uplink Configuration #}
+interface {{ leafs['uplinks']['spine1Uplink'] }}
+ description Uplink to Spine1
+ channel-group 100 mode active
+!
+interface {{ leafs['uplinks']['spine2Uplink'] }}
+ description Uplink to Spine2
+ channel-group 100 mode active
+!

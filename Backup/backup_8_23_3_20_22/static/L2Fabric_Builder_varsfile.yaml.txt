@@ -1,0 +1,142 @@
+PROD:
+  mgmtInfo:
+    gateway: '10.255.255.1'
+    mask: '/24'
+    usernames:
+    - { userId: 'cvpadmin', secret: '$6$2OdV5CL1mbAmZ8pi$em77MFMQzi0Igv6rz17u.DVDXhJLUFjIjFTgM.WWWMhpSzpt9UTUQeXKrxC6/GNkntZ9QRSNLy8Aw6Ow4xJd/.' }
+  spines:
+    mlag:
+      peerLink1: 'Ethernet5'
+      peerLink2: 'Ethernet6'
+    devices:
+      '10.255.255.101': 'CinPrSpine1a'
+      '10.255.255.102': 'CinPrSpine1b'
+    portChannels:
+      - {id: '1', description: 'to CinPrLeaf10', allowedVlans: 'all', mlagMember1: 'Ethernet1', mlagMember1_description: 'to CinPrLeaf10a', mlagMember2: 'Ethernet2', mlagMember2_description: 'to CinPrLeaf10b'}
+      - {id: '2', description: 'to CinPrLeaf1', allowedVlans: 'all', mlagMember1: 'Ethernet3', mlagMember1_description: 'to CinPrLeaf1a', mlagMember2: 'Ethernet4', mlagMember2_description: 'to CinPrLeaf1b'}
+  leafs:
+    mlag:
+      peerLink1: 'Ethernet3'
+      peerLink2: 'Ethernet4'
+      domainIds:
+        PAIR1: ['10.255.255.201', '10.255.255.202']
+        PAIR2: ['10.255.255.203', '10.255.255.204']
+    uplinks:
+      spine1Uplink: 'Ethernet1'
+      spine2Uplink: 'Ethernet2'
+    devices:
+      '10.255.255.201': 'CinPrLeaf1a'
+      '10.255.255.202': 'CinPrLeaf1b'
+      '10.255.255.203': 'CinPrLeaf10a'
+      '10.255.255.204': 'CinPrLeaf10b'
+  vlans:
+    - {vlanId: '3', name: 'management'}
+    - {vlanId: '14', name: 'Hadoop-prod'}
+    - {vlanId: '16', name: 'SQLHeartbeatProductionLAN'}
+    - {vlanId: '17', name: 'SQLHeartbeatProductionPCIStorage'}
+    - {vlanId: '18', name: 'SQLHeartbeatQALAN'}
+    - {vlanId: '19', name: 'SQLHeartbeatQAPCIStorage'}
+    - {vlanId: '20', name: 'SQLHeartbeatDevLAN'}
+    - {vlanId: '21', name: 'SQLHeartbeatDevPCIStorage'}
+    - {vlanId: '200', name: 'Management1'}
+    - {vlanId: '201', name: 'SecureAccess'}
+    - {vlanId: '202', name: 'Monitor'}
+    - {vlanId: '203', name: 'Management3'}
+    - {vlanId: '204', name: 'SecurityControl'}
+    - {vlanId: '205', name: 'ObserveIT'}
+    - {vlanId: '210', name: 'Management2'}
+    - {vlanId: '231', name: 'drac'}
+    - {vlanId: '232', name: 'ZPCI-Management'}
+    - {vlanId: '299', name: 'VCHA'}
+    - {vlanId: '700', name: 'PrLan1', subnet: '10.55.0.0', mask: '/24', acl: 'ACL_COMMON_PORTS', aclDirection: 'both'}
+    - {vlanId: '701', name: 'PrLan2', subnet: '10.55.1.0', mask: '/24', acl: 'ACL_COMMON_PORTS', aclDirection: 'both'}
+    - {vlanId: '710', name: 'PrApp1', subnet: '10.55.10.0', mask: '/24', acl: 'ACL_COMMON_PORTS', aclDirection: 'both'}
+    - {vlanId: '711', name: 'PrApp2', subnet: '10.55.11.0', mask: '/24', acl: 'ACL_COMMON_PORTS', aclDirection: 'both'}
+    - {vlanId: '720', name: 'PrStorage1', subnet: '10.55.20.0', mask: '/24', acl: 'ACL_COMMON_PORTS', aclDirection: 'both'}
+    - {vlanId: '721', name: 'PrStorage2', subnet: '10.55.21.0', mask: '/24', acl: 'ACL_COMMON_PORTS', aclDirection: 'both'}
+    - {vlanId: '729', name: 'PhStorage1'}
+    - {vlanId: '730', name: 'PrWeb1'}
+    - {vlanId: '731', name: 'PrWeb2'}
+    - {vlanId: '739', name: 'PhWeb1'}
+    - {vlanId: '751', name: 'PrPCIWeb'}
+    - {vlanId: '752', name: 'PrPCITransit'}
+    - {vlanId: '753', name: 'PrPCIStorage'}
+    - {vlanId: '790', name: 'PrCaringo'}
+    - {vlanId: '791', name: 'Hadoop'}
+    - {vlanId: '793', name: 'PrTfsNetwork'}
+    - {vlanId: '794', name: 'PrObs1'}
+    - {vlanId: '799', name: 'PrDMZ'}
+    - {vlanId: '999', name: 'SW_native_x0'}
+    - {vlanId: '1000', name: 'CorpVLAN'}
+  staticRoutes:
+    - { destinationSubnet: '0.0.0.0', 'mask': '0', nextHop: '20.20.20.4' }
+  aclList:
+    ACL_COMMON_PORTS:
+
+DEV:
+  mgmtInfo:
+    gateway: '10.255.255.1'
+    mask: '/24'
+    usernames:
+    - { userId: 'cvpadmin', secret: '$6$2OdV5CL1mbAmZ8pi$em77MFMQzi0Igv6rz17u.DVDXhJLUFjIjFTgM.WWWMhpSzpt9UTUQeXKrxC6/GNkntZ9QRSNLy8Aw6Ow4xJd/.' }
+  spines:
+    mlag:
+      peerLink1: 'Ethernet5'
+      peerLink2: 'Ethernet6'
+    devices:
+      '10.255.255.111': 'DCB-Spine1'
+      '10.255.255.112': 'DCB-Spine2'
+    portChannels:
+      - {id: '1', description: 'to DCB-Leaf1-2', allowedVlans: 'all', mlagMember1: 'Ethernet1', mlagMember1_description: 'To DCB-Leaf1', mlagMember2: 'Ethernet2', mlagMember2_description: 'To DCB-Leaf2'}
+      - {id: '2', description: 'to DCB-BL1-2', allowedVlans: 'all', mlagMember1: 'Ethernet3', mlagMember1_description: 'To DCB-BL1', mlagMember2: 'Ethernet4', mlagMember2_description: 'To DCB-BL2'}
+  leafs:
+    mlag:
+      peerLink1: 'Ethernet3'
+      peerLink2: 'Ethernet4'
+      domainIds:
+        PAIR1: ['10.255.255.211', '10.255.255.212']
+        PAIR2: ['10.255.255.213', '10.255.255.214']
+    uplinks:
+      spine1Uplink: 'Ethernet1'
+      spine2Uplink: 'Ethernet2'
+    devices:
+      '10.255.255.211': 'DCB-Leaf1'
+      '10.255.255.212': 'DCB-Leaf2'
+      '10.255.255.213': 'DCB-BL1'
+      '10.255.255.214': 'DCB-BL2'
+  vlans:
+    - {vlanId: '300', name: 'DevLan1', subnet: '10.51.0.0', mask: '/24', acl: 'ACL_COMMON_PORTS', aclDirection: 'both'}
+    - {vlanId: '301', name: 'DevLan2', subnet: '10.51.1.0', mask: '/24', acl: 'ACL_COMMON_PORTS', aclDirection: 'both'}
+    - {vlanId: '310', name: 'DevApp1', subnet: '10.51.10.0', mask: '/24', acl: 'ACL_COMMON_PORTS', aclDirection: 'both'}
+    - {vlanId: '311', name: 'DevApp2', subnet: '10.51.11.0', mask: '/24', acl: 'ACL_COMMON_PORTS', aclDirection: 'both'}
+    - {vlanId: '320', name: 'DevStorage1', subnet: '10.51.20.0', mask: '/24', acl: 'ACL_COMMON_PORTS', aclDirection: 'both'}
+    - {vlanId: '321', name: 'DevStorage2', subnet: '10.51.21.0', mask: '/24', acl: 'ACL_COMMON_PORTS', aclDirection: 'both'}
+    - {vlanId: '330', name: 'DevWeb1'}
+    - {vlanId: '331', name: 'DevWeb2'}
+    - {vlanId: '340', name: 'ImpLan1'}
+    - {vlanId: '341', name: 'ImpLan2'}
+    - {vlanId: '351', name: 'DevPCIWeb'}
+    - {vlanId: '352', name: 'DevPCITransit'}
+    - {vlanId: '353', name: 'DevPCIStorage'}
+    - {vlanId: '390', name: 'DevCaringo'}
+    - {vlanId: '391', name: 'DevHadoop'}
+    - {vlanId: '394', name: 'DevObs1'}
+    - {vlanId: '395', name: 'DevManagement'}
+    - {vlanId: '400', name: 'QaLan1', subnet: '10.52.0.0', mask: '/24', acl: 'ACL_COMMON_PORTS', aclDirection: 'both'}
+    - {vlanId: '401', name: 'QaLan2', subnet: '10.52.1.0', mask: '/24', acl: 'ACL_COMMON_PORTS', aclDirection: 'both'}
+    - {vlanId: '410', name: 'QaApp1', subnet: '10.52.10.0', mask: '/24', acl: 'ACL_COMMON_PORTS', aclDirection: 'both'}
+    - {vlanId: '411', name: 'QaApp2', subnet: '10.52.11.0', mask: '/24', acl: 'ACL_COMMON_PORTS', aclDirection: 'both'}
+    - {vlanId: '420', name: 'QaStorage1', subnet: '10.52.20.0', mask: '/24', acl: 'ACL_COMMON_PORTS', aclDirection: 'both'}
+    - {vlanId: '421', name: 'QaStorage2', subnet: '10.52.21.0', mask: '/24', acl: 'ACL_COMMON_PORTS', aclDirection: 'both'}
+    - {vlanId: '430', name: 'QaWeb1'}
+    - {vlanId: '431', name: 'QaWeb2'}
+    - {vlanId: '451', name: 'QaPCIWeb'}
+    - {vlanId: '452', name: 'QaPCITransit'}
+    - {vlanId: '453', name: 'QaPCIStorage'}
+    - {vlanId: '494', name: 'QaObs1'}
+    - {vlanId: '495', name: 'QaManagement'}
+  staticRoutes:
+    - { destinationSubnet: '0.0.0.0', 'mask': '0', nextHop: '20.20.20.4' }
+  aclList:
+    ACL_COMMON_PORTS:
+

@@ -1,0 +1,130 @@
+{# Begin Management Configuration #}
+hostname {{ hostname }}
+!
+vrf definition MGMT
+!
+interface Management1
+ vrf forwarding MGMT
+ ip address {{ mgmtIp }}{{ mgmtInfo['mask'] }}
+ no shutdown
+!
+ip route vrf MGMT 0.0.0.0/0 {{ mgmtInfo['gateway'] }}
+!
+{% if usernames != None %}
+{% for username in mgmtInfo['usernames'] %}
+username {{ username['userId'] }} secret sha512 {{ username['secret'] }}
+{% endfor %}
+{% endif %}
+!
+management api http-commands
+ no shutdown
+ !
+ vrf MGMT
+  no shutdown
+!
+{# Begin ACL Configuration #}
+{% if aclList and aclList != None %}
+{% for acl in aclList %}
+{{ aclList[acl] }}
+!
+{% endfor %}
+{% endif %}
+{# Begin MLAG Configuration #}
+spanning-tree mode rapid-pvst
+ip virtual-router mac-address 001c.7300.0999
+!
+vlan 4094
+ name MLAGPEER
+ trunk group MLAGPEER
+!
+no spanning-tree vlan 4094
+!
+interface vlan4094
+ ip address 192.168.255.{{ mlagOctet }}/31
+ description MLAG PEER VLAN
+ no autostate
+ no shutdown
+!
+interface Port-Channel2000
+ description MLAG PEER LINK
+ switchport mode trunk
+ switchport trunk group MLAGPEER
+!
+interface {{ spines['mlag']['peerLink1'] }}
+ description MLAG PEER LINK 1
+ channel-group 1000 mode active
+!
+interface {{ spines['mlag']['peerLink2'] }}
+ description MLAG PEER LINK 2
+ channel-group 1000 mode active
+!
+mlag configuration
+ domain-id SPINES
+{%if mlagOctet == '254' %}
+ peer-address 192.168.255.255
+{%elif mlagOctet == '255' %}
+ peer-address 192.168.255.254
+{% endif %}
+ peer-link Port-Channel1000
+ local-interface vlan 4094
+!
+{# Begin L2 Vlan Configuration #}
+{% for vlan in vlans %}
+spanning-tree vlan {{ vlan['vlanId'] }} priority 4096
+{% endfor %}
+!
+{% for vlan in vlans %}
+vlan {{ vlan['vlanId'] }}
+ name {{ vlan['name'] }}
+!
+{% endfor %}
+{# Begin L3 Configuration #}
+ip routing
+!
+{% for vlan in vlans %}
+{% if vlan['subnet'] %}
+interface vlan{{ vlan['vlanId'] }}
+ mtu 9214
+ no autostate
+ ip address {{ vlan['subnet'][:-1]}}{{ lastOctet }}{{vlan['mask']}}
+ ip virtual-router address {{ vlan['subnet'][:-1]}}1
+{# if vlan['acl'] and vlan['aclDirection'] #}
+{# if vlan['aclDirection'] == 'both' #}
+{# access-group {{ vlan['acl'] }} in #}
+{# access-group {{ vlan['acl'] }} out #}
+{# else #}
+{# access-group {{ vlan['acl'] }} {{ vlan['aclDirection'] }} #}
+{# endif #}
+{# endif #}
+ no shutdown
+!
+{% endif %}
+{% endfor %}
+{# Begin Static Route Configuration #}
+{% if staticRoutes != None %}
+{% for sRoute in staticRoutes %}
+ip route {{ sRoute['destinationSubnet'] }}/{{ sRoute['mask'] }} {{ sRoute['nextHop'] }}
+{% endfor %}
+{% endif %}
+!
+{# Begin Port Channel Configuration #}
+{% for portChannel in spines['portChannels'] %}
+interface Port-Channel{{ portChannel['id'] }}
+ description {{ portChannel['description'] }}
+ switchport mode trunk
+{% if portChannel['allowedVlans'] != 'all' %}
+ switchport trunk allowed vlan {{ portChannel['allowedVlans'] }}
+{% endif %}
+ mlag {{ portChannel['id'] }}
+!
+{% endfor %}
+{% for portChannel in spines['portChannels'] %}
+interface {{ portChannel['mlagMember1'] }}
+ description {{ portChannel['mlagMember1_description'] }}
+ channel-group {{ portChannel['id'] }} mode active
+!
+interface {{ portChannel['mlagMember2'] }}
+ description {{ portChannel['mlagMember2_description'] }}
+ channel-group {{ portChannel['id'] }} mode active
+!
+{% endfor %}

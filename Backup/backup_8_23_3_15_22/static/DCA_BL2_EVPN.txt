@@ -1,0 +1,104 @@
+service routing protocols model multi-agent
+lldp management-address Management1
+hostname DCA-BL2
+no spanning-tree vlan 4094
+username cvpadmin secret sha512 $6$/RDaRGeEEIE5T/6Q$dyAz6KhpYMA3gkLg4zx658FSFXJQjv/SQcpyF.bhX2dBWnqmdQVpUU71BCiP/4kQd5H8JcnQOKjinlYSG7/r/1
+vlan 4094
+   name MLAG_PEERLINK
+   trunk group MLAGPEER
+vrf definition MGMT
+interface Port-Channel100
+   description MLAG Peer Link to DCA-BL1
+   switchport mode trunk
+   switchport trunk group MLAGPEER
+interface Port-Channel1
+   description HOSTB MLAG
+   switchport access vlan 10
+   switchport mode access
+   mlag 1
+interface Ethernet1
+   description To DCA-Spine1
+   mtu 9214
+   no switchport
+   ip address 10.101.204.1/31
+interface Ethernet2
+   description To DCA-Spine2
+   mtu 9214
+   no switchport
+   ip address 10.102.204.1/31
+interface Ethernet3
+   channel-group 100 mode active
+interface Ethernet4
+   channel-group 100 mode active
+interface Ethernet5
+   description HostB MLAG Member Port
+   channel-group 1 mode active
+interface Loopback0
+   description Loopback for Underlay
+   ip address 1.1.1.204/32
+   ip ospf area 0.0.0.0
+interface Loopback1
+   description Loopback for VTEP
+   ip address 2.2.2.2/32
+   ip ospf area 0.0.0.0
+interface Management1
+   vrf forwarding MGMT
+   ip address 10.255.255.204/24
+interface Vlan4094
+   ip address 192.168.255.255/31
+   ip ospf authentication message-digest md5
+   ip ospf message-digest-key 1 md5 7 FqfcPUvFoxM=
+interface Vxlan1
+   vxlan source-interface Loopback1
+   vxlan udp-port 4789
+   vxlan vlan 10-1000 vni 10010-11000
+ip virtual-router mac-address aa:aa:bb:bb:cc:cc
+ip route vrf MGMT 0.0.0.0/0 10.255.255.1
+ip routing
+no ip routing vrf MGMT
+mlag configuration
+   domain-id 65102
+   local-interface Vlan4094
+   peer-address 192.168.255.254
+   peer-link Port-Channel100
+router bgp 65102
+   router-id 1.1.1.204
+   no bgp default ipv4-unicast
+   maximum-paths 4 ecmp 4
+   neighbor OVERLAY_PEERS_DCA peer-group
+   neighbor OVERLAY_PEERS_DCA remote-as 65100
+   neighbor OVERLAY_PEERS_DCA update-source Loopback0
+   neighbor OVERLAY_PEERS_DCA ebgp-multihop 8
+   neighbor OVERLAY_PEERS_DCA send-community extended
+   neighbor OVERLAY_PEERS_DCA maximum-routes 0 
+   neighbor UNDERLAY_MLAG_PEERS peer-group
+   neighbor UNDERLAY_MLAG_PEERS next-hop-self
+   neighbor UNDERLAY_MLAG_PEERS send-community
+   neighbor UNDERLAY_MLAG_PEERS maximum-routes 0 
+   neighbor UNDERLAY_PEERS_DCA peer-group
+   neighbor UNDERLAY_PEERS_DCA send-community
+   neighbor UNDERLAY_PEERS_DCA maximum-routes 0 
+   neighbor 1.1.1.101 peer-group OVERLAY_PEERS_DCA
+   neighbor 1.1.1.101 description DCA-Spine1
+   neighbor 1.1.1.102 peer-group OVERLAY_PEERS_DCA
+   neighbor 1.1.1.102 description DCA-Spine2
+   neighbor 10.101.204.0 peer-group UNDERLAY_PEERS_DCA
+   neighbor 10.101.204.0 remote-as 65100
+   neighbor 10.101.204.0 description DCA-Spine2
+   neighbor 10.102.204.0 peer-group UNDERLAY_PEERS_DCA
+   neighbor 10.102.204.0 remote-as 65100
+   neighbor 10.102.204.0 description DCA-Spine2
+   neighbor 192.168.255.254 peer-group UNDERLAY_MLAG_PEERS
+   neighbor 192.168.255.254 remote-as 65101
+   neighbor 192.168.255.254 description DCA-Leaf2-MLAG
+   address-family evpn
+      neighbor OVERLAY_PEERS_DCA activate
+   address-family ipv4
+      neighbor UNDERLAY_MLAG_PEERS activate
+      neighbor UNDERLAY_PEERS_DCA activate
+      network 1.1.1.204/32
+      network 2.2.2.2/32
+management api http-commands
+   no shutdown
+   vrf MGMT
+      no shutdown
